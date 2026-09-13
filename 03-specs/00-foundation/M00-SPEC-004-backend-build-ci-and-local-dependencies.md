@@ -7,9 +7,10 @@
 
 ## 1. Purpose
 
-Define how `knowhub-backend` is built, validated and run at M00: the local
-dependency services a developer brings up, the Alembic scaffolding that
-makes migrations repeatable before any schema exists, the CI gate set, the
+Define how `knowhub-backend` is built, validated and run at M00: the
+dependency services the backend requires, how they are provisioned and how
+their availability is verified, the Alembic scaffolding that makes
+migrations repeatable before any schema exists, the CI gate set, the
 container image and its process-mode structure, and the test layout.
 
 ## 2. Sources
@@ -32,7 +33,8 @@ container image and its process-mode structure, and the test layout.
   — the Local column — and §76.1 (promotion rules)
 - [§75.1 Test layers](../../../knowhub_master_blueprint.html#acceptance-tests)
 - [§81.1 Milestone exit rule](../../../knowhub_master_blueprint.html#implementation-dependency-graph)
-- [§84.2 Definition of a completed implementation task](../../../knowhub_master_blueprint.html#coding-harness-instructions)
+- [§84.1 Mandatory working style](../../../knowhub_master_blueprint.html#coding-harness-instructions),
+  [§84.2 Definition of a completed implementation task](../../../knowhub_master_blueprint.html#coding-harness-instructions)
   and [§84.3 Repository hygiene](../../../knowhub_master_blueprint.html#coding-harness-instructions)
 - [§65.3 Security, privacy and compliance constraints](../../../knowhub_master_blueprint.html#non-functional-requirements)
 
@@ -50,29 +52,63 @@ container image and its process-mode structure, and the test layout.
 
 ## 3. Normative requirements — local dependency services
 
-**R1.** The repository provides a Compose definition that brings up the
-backend's local dependency services, and a documented bring-up sequence a
-developer can follow on a clean machine. Each service declares a health
-check, so that "the dependency is available" is an observable condition in
-local development and in CI rather than an assumption.
-*(§0E.8 Local development block; §30; §61)*
+**R1.** The backend consumes its dependency services only as **configured
+endpoints**. It must not detect, infer or branch on how a service was
+provisioned: a container, a package manager, a native installation or any
+other local runtime are indistinguishable to the application. Application
+behaviour, configuration shape and the test suite are identical regardless
+of provenance.
+*(§76 — environments differ by configuration, scale, data class and
+connectivity, not by separate code;
+[M00-SPEC-002](M00-SPEC-002-backend-configuration-and-settings.md) R20, R22)*
+
+**R1.1.** The repository provides a **reproducible container-based
+dependency environment**: a Compose definition covering the full R2 set,
+with a health check per service, and a documented bring-up sequence a
+developer can follow on a clean machine. This environment is the clean-room
+path — it is what CI uses, what onboarding uses when a dependency is absent,
+and what the M00 acceptance criteria are verified against.
+*(§0E.8 Local development block; §76.1 — environments are reproducible;
+§30; §61)*
+
+**R1.2.** The R1.1 environment is **not** the mandatory development path
+for a service the developer already has. A developer may point KnowHub
+configuration at an existing instance of **any R2 dependency service** and
+start only the services they do not already have. Introducing a duplicate
+instance of a service that is already available is not required by this
+specification. Which services a given developer already runs is an
+environment fact, not an architectural rule, and this specification states
+no expectation either way.
+*(§0E.8 Local development block; §76 Local column)*
+
+**R1.3.** "The dependency is available" must be an **observed** condition
+in every environment, never an assumption. Within the R1.1 environment,
+availability is observed through each service's declared health check.
+Where a service is supplied outside the managed container environment, its
+availability is verified at the configured endpoint using a documented
+equivalent health check. The invariant is observed availability, not
+identical mechanics. Neither mode may rely on a service being presumed up.
+*(§0E.8; §76 Local column; §81.1 — failure paths are exercised)*
 
 **R2.** The M00 local dependency set is exactly **PostgreSQL, Redis and
 Azurite**.
 *(§0E.8 Local development block; §76 Local column)*
 
-**R3.** The local PostgreSQL service must be compatible with the intended
-deployment target and must make the **pgvector** extension available.
+**R3.** Whichever PostgreSQL instance is configured must be compatible with
+the intended deployment target and must make the **pgvector** extension
+available.
 *(§0E.1 Persistence and Semantic retrieval rows; ADR-003; ADR-004)*
 
 **R4.** No PostgreSQL major version is fixed by this specification, because
 neither the blueprint nor an accepted ADR specifies one. The implementation
-plan selects the version and image and **must pin them explicitly**;
-an unpinned or floating tag is not acceptable.
+plan selects the version and image **for the R1.1 environment** and **must
+pin them explicitly**; an unpinned or floating tag is not acceptable. The
+plan also states the minimum supported major version that an instance
+supplied outside that environment must satisfy under R3.
 *(§76.1 — environments are reproducible; §0E.1 Infrastructure as code row)*
 
-**R5.** Redis is present as a local service because it is the V1 broker and
-coordination store. M00 implements no broker, queue, task, lock or cache
+**R5.** Redis is part of the R2 dependency set because it is the V1 broker
+and coordination store. M00 implements no broker, queue, task, lock or cache
 usage, and must not add a Redis client, a fake adapter or any placeholder
 application integration in order to have something to test. Redis is proven
 **healthy and reachable** at M00; it is **exercised** by the M2
@@ -80,7 +116,8 @@ functionality that first uses it.
 *(§0E.1 Cache/coordination row; ADR-006; §84.1 — deliver working vertical
 slices, not a large set of empty interfaces)*
 
-**R6.** Azurite is the local object-storage service. M00 implements no Blob
+**R6.** Azurite is the object-storage service in the R2 set. M00 implements
+no Blob
 abstraction, adapter or client, and must not add one — nor a fake adapter or
 placeholder integration — in order to have something to test. Azurite is
 proven **healthy and reachable** at M00; it is **exercised** by the M2
@@ -114,7 +151,7 @@ model is M1 work, and the first real domain migration belongs there.
 *(§81 milestone 1)*
 
 **R11.** The migration command must execute successfully and repeatably
-against the local PostgreSQL service on the empty chain, from a fresh
+against the configured PostgreSQL instance on the empty chain, from a fresh
 database and from an already-migrated one.
 *(§81.1; §84.1 — never assume a fresh database is the only deployment
 path)*
@@ -214,9 +251,9 @@ in local development and in CI alike. Concretely at M00:
 
 | Dependency | M00 integration code | M00 test obligation |
 |---|---|---|
-| PostgreSQL | Yes — the Alembic scaffolding of R9–R11 | Exercised by real integration tests against the local PostgreSQL service |
-| Redis | No — deferred to M2 by R5 | Proven healthy and reachable per R1 and R24; no application integration test |
-| Azurite | No — deferred to M2 by R6 | Proven healthy and reachable per R1 and R24; no application integration test |
+| PostgreSQL | Yes — the Alembic scaffolding of R9–R11 | Exercised by real integration tests against the configured PostgreSQL instance |
+| Redis | No — deferred to M2 by R5 | Availability verified per R1.3 and R24; no application integration test |
+| Azurite | No — deferred to M2 by R6 | Availability verified per R1.3 and R24; no application integration test |
 
 Real Redis integration tests begin with the M2 functionality that uses
 Redis. Real Blob/Azurite integration tests begin with the M2 functionality
@@ -225,9 +262,9 @@ that uses the Blob abstraction.
 §0E.8; §81 milestone 2; §84.1)*
 
 **R24.** Availability of a deferred-usage dependency is verified through
-its R1 health check in the Local and CI environments, not through
-application code. Health-check verification is not an integration test and
-must not be described or counted as one.
+the R1.3 availability observation in the Local and CI environments, not
+through application code. Availability verification is not an integration
+test and must not be described or counted as one.
 *(§0E.8; §76 Local column; §84.1)*
 
 **R25.** Failure paths are exercised, not only success paths: §81.1 gates
@@ -258,13 +295,13 @@ acceptance criteria of this packet.
 
 | ID | Criterion |
 |---|---|
-| **M00-AC-018** | The documented bring-up sequence starts PostgreSQL, Redis and Azurite on a clean machine and each reports healthy through its declared health check; no service outside that set is required. *(R1, R2, R7)* |
-| **M00-AC-019** | The pgvector extension can be enabled on the local PostgreSQL service, and the PostgreSQL version and image are explicitly pinned. *(R3, R4)* |
-| **M00-AC-020** | The migration command succeeds against the local PostgreSQL on the empty chain, and is repeatable both from a fresh database and from an already-migrated one. No business schema migration exists. *(R9, R10, R11)* |
+| **M00-AC-018** | In the reproducible container-based environment, the documented bring-up sequence starts PostgreSQL, Redis and Azurite on a clean machine and each reports healthy through its declared health check. Where any R2 service is supplied outside that environment, KnowHub runs unchanged against it, only the absent services are started, and its availability is verified at the configured endpoint by a documented equivalent health check. No service outside the R2 set is required in either mode, and the repository contains no code that distinguishes how a service was provisioned. *(R1, R1.1, R1.2, R1.3, R2, R7)* |
+| **M00-AC-019** | The pgvector extension can be enabled on whichever PostgreSQL instance is configured. The R1.1 environment's PostgreSQL version and image are explicitly pinned, and the documented minimum major version applies to an instance supplied outside it. *(R3, R4)* |
+| **M00-AC-020** | The migration command succeeds against the configured PostgreSQL on the empty chain, and is repeatable both from a fresh database and from an already-migrated one. No business schema migration exists. *(R9, R10, R11)* |
 | **M00-AC-021** | CI completes with only `knowhub-backend` cloned; no job, step, script or cached artifact references `knowhub-frontend`. *(R12)* |
 | **M00-AC-022** | Every gate in R13 is present and blocking, including gates that currently find nothing to check. *(R13, R14)* |
 | **M00-AC-023** | The secret-scanning gate is demonstrated against a synthetic, known-test credential placed into an ephemeral verification input — a scratch worktree, fixture or scan target created for the check and discarded after it. The scan fails on that input and passes once it is removed. No real or persistent credential is committed, and no detectable test credential remains in the repository after verification. *(R15)* |
-| **M00-AC-024** | M00 integration tests run in CI against the real service for every dependency where M00 has integration code — at M00, PostgreSQL via the Alembic scaffolding — and not against mocks of it. Redis and Azurite are verified available through their health checks only; no Redis client, Blob client, fake adapter or placeholder application integration exists in the repository to make them testable. *(R5, R6, R23, R24)* |
+| **M00-AC-024** | M00 integration tests run in CI against the real service for every dependency where M00 has integration code — at M00, the configured PostgreSQL via the Alembic scaffolding — and not against mocks of it. Redis and Azurite are verified available through the R1.3 availability observation only; no Redis client, Blob client, fake adapter or placeholder application integration exists in the repository to make them testable. *(R5, R6, R23, R24)* |
 | **M00-AC-025** | The image builds, starts in API mode, serves the foundation liveness and readiness endpoints and emits telemetry; the entry point accepts a process-mode selection; no placeholder worker or scheduler implementation exists in the repository. *(R17, R18, R19, R20)* |
 | **M00-AC-026** | The test tree contains only layers holding real M00 tests — currently unit and integration; no empty test-layer directory exists for a layer with no tests yet, and the full §75.1 model is recorded as the target rather than materialized. The M00 failure paths named in R25 are exercised. *(R22, R25)* |
 
@@ -275,7 +312,7 @@ acceptance criteria of this packet.
 | First business schema migration and the canonical data model | M1 |
 | OpenAPI artifact publication and the compatibility-diff gate | M1 / 0B |
 | Taskiq broker, worker and scheduler implementations and their process modes | M2 |
-| Blob abstraction and adapter, and the first real Blob/Azurite integration tests — Azurite is a health-checked local service only at M00 | M2 |
+| Blob abstraction and adapter, and the first real Blob/Azurite integration tests — Azurite is an availability-verified dependency only at M00 | M2 |
 | Redis usage in application code — broker, cache, locks, throttling — and the first real Redis integration tests | M2 |
 | Contract, parity, golden and security test layers, their directories and their CI gates — each created by the milestone that first supplies real tests for it | M3+ |
 | Deterministic parser test gate | M4 |
