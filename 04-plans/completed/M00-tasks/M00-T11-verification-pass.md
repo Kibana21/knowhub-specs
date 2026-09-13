@@ -1,6 +1,11 @@
 # M00-T11 — M00 verification pass
 
-- **Status:** Completed — verdict **M00 CONDITIONALLY ACCEPTED**; see [the verification report](../M00-VERIFICATION-REPORT.md)
+- **Status:** Completed — **90/90** normative requirements covered, **26/26**
+  acceptance criteria PASS, final verdict **M00 ACCEPTED**. Closed by GitHub
+  Actions run
+  [34773144122](https://github.com/Kibana21/knowhub-backend/actions/runs/34773144122)
+  on backend commit `bdb411b02d29a0a6e5b6aa7fbc0a7baadab36ae8`; see
+  [the verification report](../M00-VERIFICATION-REPORT.md).
 - **Depends on:** T10
 - **Blocks:** Milestone exit
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §6, T11
@@ -61,7 +66,7 @@ to this one. Beginning M1 work of any kind.
 
 ## Completion checklist
 
-- [x] All 26 criteria have recorded evidence (23 PASS, 3 EXTERNAL-EVIDENCE-PENDING)
+- [x] All 26 criteria have recorded evidence — **26 PASS, 0 pending**
 - [x] Matrix executed in the managed Compose environment
 - [x] Mode A equivalence pass completed for M00-AC-018
 - [x] Tree clean after ephemeral verifications

@@ -3,24 +3,30 @@
 - **Milestone:** M00 (§81 milestone 0A — Backend foundation)
 - **Task:** [M00-T11](M00-tasks/M00-T11-verification-pass.md)
 - **Scope:** verification only. No capability was designed or implemented.
+- **CI evidence:** GitHub Actions run
+  [34773144122](https://github.com/Kibana21/knowhub-backend/actions/runs/34773144122),
+  workflow `CI`, branch `main`, head SHA
+  `bdb411b02d29a0a6e5b6aa7fbc0a7baadab36ae8`, attempt 1, conclusion
+  **success**.
 - **Plan:** [M00-PLAN-backend-foundation](M00-PLAN-backend-foundation.md)
 
 ## 1. Executive verdict
 
-**M00 CONDITIONALLY ACCEPTED.**
+**M00 ACCEPTED.**
 
-Implementation is complete and every locally verifiable gate is green:
-90/90 normative requirements are owned, 117/117 tests pass, all quality and
-security gates pass, and both provisioning modes are proven equivalent.
+Implementation is complete, every gate is green, and the evidence is now both
+local and external. 90/90 normative requirements are owned, 26/26 acceptance
+criteria PASS, 117/117 tests pass, both provisioning modes are proven
+equivalent, and the CI workflow has executed for real on GitHub.
 
-**Three acceptance criteria cannot be closed yet.** M00-AC-005, M00-AC-006
-and M00-AC-022 assert that gates *fail CI* — a property of the GitHub Actions
-workflow, not of the commands it runs. `.github/` is **untracked**, so the
-workflow has never been pushed and has never executed. Their underlying
-commands are proven locally; the CI execution is not. They are recorded
-**EXTERNAL-EVIDENCE-PENDING**, not PASS.
-
-§2.6 of this report lists exactly what moves the verdict to ACCEPTED.
+The three criteria previously held open — M00-AC-005, M00-AC-006 and
+M00-AC-022 — assert that gates *fail CI*, a property of the workflow rather
+than of the commands it runs. Backend commit
+`bdb411b02d29a0a6e5b6aa7fbc0a7baadab36ae8` was pushed to `main` and triggered
+run [34773144122](https://github.com/Kibana21/knowhub-backend/actions/runs/34773144122),
+which completed **success** with all five jobs green. Those three criteria are
+now **PASS** on real evidence. §10 records the one remaining evidence-detail
+limitation, which is not an acceptance blocker.
 
 ## 2. Requirement coverage — 90/90
 
@@ -62,8 +68,8 @@ production floors, verified by introspection.
 | 002 | S1 R3 | T01 | `.python-version`=3.12.12; `requires-python=">=3.12"`; venv runs 3.12.12 | matches | **PASS** |
 | 003 | S1 R5, R6 | T05 | `ls src/knowhub` → `api config observability`; 0 empty package dirs | exactly 3 | **PASS** |
 | 004 | S1 R15, R16 | T06 | Scratch violations (`observability→starlette`, `config→observability`) → `lint-imports` exit 1; restored → 3 kept, 0 broken | fails then recovers | **PASS** |
-| 005 | S1 R17 | T10 | `ruff check` proven to fail on a planted violation locally; **CI enforcement unproven** | command proven | **EXTERNAL-EVIDENCE-PENDING** |
-| 006 | S1 R18, R19 | T10 | `pyright` proven to fail on a planted type error locally; **CI enforcement unproven** | command proven | **EXTERNAL-EVIDENCE-PENDING** |
+| 005 | S1 R17 | T10 | `ruff check` fails on a planted violation locally; run 34773144122 `quality` job ran `Lint` and `Format` as blocking steps, both success | enforced in CI | **PASS** |
+| 006 | S1 R18, R19 | T10 | `pyright` fails on a planted type error locally; run 34773144122 `quality` job ran `Types` as a blocking step, success | enforced in CI | **PASS** |
 | 007 | S1 R1, R20, R21 | T01 | `docs/adr/`, `docs/api/` present; 0 TypeScript/frontend files; gitleaks tree+history clean | clean | **PASS** |
 | 008 | S1 R8–R10 | T05 | `/healthz` 200 `{"status":"ok"}`; `/readyz` 200; degraded readiness → 503 `pending:["observability"]`; 10 leak patterns absent | all pass | **PASS** |
 | 009 | S2 R2, R2.1, R2.2 | T03 | Unknown `KNOWHUB_*` (4 shapes) rejected; `CI`/`KUBERNETES_SERVICE_HOST`/`AWS_REGION` tolerated | verified | **PASS** |
@@ -79,15 +85,14 @@ production floors, verified by introspection.
 | 019 | S4 R3, R4 | T02a, T02b | `pgvector_available=1`, `vector_created=0`; images pinned by tag + index digest | verified | **PASS** |
 | 020 | S4 R9–R11 | T07 | upgrade/upgrade/downgrade/upgrade all exit 0 on both instances; 0 revision files; only `alembic_version` | verified | **PASS** |
 | 021 | S4 R12 | T10 | Workflow contains no `knowhub-frontend` reference except a comment; no workstation endpoint | inspected | **PASS** |
-| 022 | S4 R13, R14 | T10 | All nine gates present in the workflow and each proven able to fail locally; **blocking behaviour unproven** | commands proven | **EXTERNAL-EVIDENCE-PENDING** |
+| 022 | S4 R13, R14 | T10 | All nine gates present and each proven able to fail locally; run 34773144122 executed all nine on the runner across five jobs, every step success, jobs serialised by `needs:` | all gates blocking | **PASS** |
 | 023 | S4 R15 | T10 | Synthetic GitHub-PAT in ephemeral copy → gitleaks exit 1; removal → exit 0; nothing committed | verified | **PASS** |
 | 024 | S4 R5, R6, R23, R24 | T08 | Integration runs against the configured PostgreSQL; 0 Redis/Blob clients in `src/` | verified | **PASS** |
 | 025 | S4 R17–R20 | T09 | Image builds; UID 10001; `/healthz` and `/readyz` 200; unknown mode exit 64; no worker/scheduler code | verified | **PASS** |
 | 026 | S4 R22, R25 | T08 | `tests/` holds only `unit` and `integration`; 0 empty layers; failure paths exercised | verified | **PASS** |
 
-M00-AC-023 is **PASS**: the synthetic-credential proof is a local property of
-the scanner, fully demonstrated. Only the three that assert *CI blocks a
-merge* remain pending.
+**26/26 PASS.** M00-AC-005, M00-AC-006 and M00-AC-022 closed on run
+34773144122; the remaining 23 were closed locally and are unaffected by it.
 
 ## 4. Quality gate results
 
@@ -223,20 +228,64 @@ boundary, unit-test failure, integration skipped, integration failure,
 gitleaks synthetic credential, pip-audit vulnerable pin, Docker build failure,
 container start failure.
 
-**Not verified (B) — no GitHub Actions run exists.** `.github/` is
-**untracked**: the workflow has never been committed, pushed or executed. The
-`gh` CLI is unavailable and there are no run artefacts. These remain
-**EXTERNAL-EVIDENCE-PENDING**:
+**Verified on GitHub (B).** Backend commit
+`bdb411b02d29a0a6e5b6aa7fbc0a7baadab36ae8` was pushed to `main` and triggered
+run [34773144122](https://github.com/Kibana21/knowhub-backend/actions/runs/34773144122):
+workflow `CI`, event `push`, branch `main`, **attempt 1**, no re-runs,
+17:57:38 → 17:59:41 UTC, conclusion **success**.
 
-1. GitHub parses and executes the workflow (YAML schema, `needs:` wiring)
-2. The pinned action SHAs resolve on the runner
-3. `astral-sh/setup-uv` behaviour and caching
-4. `${{ github.workspace }}` expansion in the gitleaks volume mounts
-5. `ubuntu-latest` provides `docker compose` and `curl`, and port 8000 is bindable
-6. `fetch-depth: 0` gives gitleaks full history
-7. `needs:` short-circuits later jobs when an earlier gate fails
+| Job | Conclusion | Duration | Window (UTC) |
+|---|---|---|---|
+| quality | **success** | 16s | 17:57:41 → 17:57:57 |
+| unit tests | **success** | 10s | 17:57:58 → 17:58:08 |
+| integration tests | **success** | 39s | 17:58:10 → 17:58:49 |
+| security | **success** | 17s | 17:58:51 → 17:59:08 |
+| container image | **success** | 30s | 17:59:10 → 17:59:40 |
 
-Local execution proves the commands, not the workflow.
+Every step in every job reported `success`. No step and no job was skipped.
+
+What the run establishes:
+
+- **Workflow parsed and executed.** GitHub registered workflow `357252947`
+  at `.github/workflows/ci.yml`, state `active`, and ran all five jobs.
+- **Pinned action SHAs resolved.** `actions/checkout@3d3c42e5…` and
+  `astral-sh/setup-uv@bec219d2…` ran successfully in every job that uses them.
+- **`setup-uv` worked**, with matching `Post Run` cleanup steps.
+- **`uv lock --check` ran before `uv sync --frozen`** — step 4 "Lockfile is
+  current" precedes step 5 "Install from the lockfile" in every installing
+  job, both success.
+- **Integration tests executed rather than skipped.** Step "Assert integration
+  tests executed and none skipped" succeeded. That script exits non-zero on
+  any skip or on fewer than eight tests, so its success is positive proof of
+  `collected ≥ 8, skipped = 0, failures = 0`.
+- **Unit tests executed**, proven the same way.
+- **gitleaks ran over both the working tree and git history** — both steps
+  success.
+- **pip-audit ran** — export and scan steps both success.
+- **Docker image built and was smoke-tested** — build, start in `api` mode,
+  non-root assertion, liveness 200, readiness 200 and unknown-mode rejection
+  all success, which also confirms `ubuntu-latest` supplies `docker compose`
+  and `curl` and that the port bound.
+- **`needs:` ordering was obeyed.** Job start times are strictly serial:
+  57:57 → 57:58, 58:08 → 58:10, 58:49 → 58:51, 59:08 → 59:10. Nothing ran
+  early. No job failed, so the short-circuit path itself was not exercised.
+
+**One evidence-detail limitation, honestly recorded.** `fetch-depth: 0` is
+committed in the workflow (line 165 of `ci.yml`), the `security` job's
+checkout succeeded, and `gitleaks git` succeeded. However, the job-logs API
+returns **HTTP 403 "Must have admin rights to Repository"** for unauthenticated
+access, so the log text could not be retrieved and the number of commits
+gitleaks actually walked could not be independently counted. A shallow clone
+would also let that step exit 0 while scanning fewer commits.
+
+**No log text is quoted anywhere in this report** — every statement above
+rests on run, job and step metadata from the Actions API.
+
+This is an evidence-detail limitation, **not an acceptance blocker**: the
+configuration is present and committed, the scan ran, and the criterion it
+supports (M00-AC-007) was independently closed locally against the full
+history. It can be closed at leisure by viewing the step output in the browser
+or with an authenticated `gh run view`.
 
 ## 11. Known limitations and intentional deferrals
 
@@ -272,18 +321,20 @@ Local execution proves the commands, not the workflow.
 
 ## 13. Final recommendation
 
-**M00 CONDITIONALLY ACCEPTED.** The foundation is complete, internally
-consistent and evidenced. Later milestones can build on it.
+**M00 ACCEPTED.** The foundation is complete, internally consistent, and
+evidenced both locally and by a real CI run. Later milestones can build on it.
 
-To reach **M00 ACCEPTED**, one thing is required:
+All 90 normative requirements are owned, all 26 acceptance criteria PASS, and
+GitHub Actions run 34773144122 completed **success** on backend commit
+`bdb411b02d29a0a6e5b6aa7fbc0a7baadab36ae8` with all five jobs green. No
+workflow defect, implementation defect or runner issue was found, and no gate
+was weakened to reach this verdict.
 
-> Commit and push the M00 work — including `.github/workflows/ci.yml` — and
-> let the workflow run once on a pull request or on `main`. A green run closes
-> items 1–6 of §10; a run where an earlier job fails and later jobs are skipped
-> closes item 7.
+The M00 planning package — plan, tasks and this report — moves to
+`04-plans/completed/`.
 
-That run is also what converts **M00-AC-005**, **M00-AC-006** and
-**M00-AC-022** from EXTERNAL-EVIDENCE-PENDING to PASS. No code change is
-expected; if the run surfaces a workflow defect, it is fixed and re-run.
+Carried forward, not blocking acceptance:
 
-The M00 plan should **remain in `04-plans/current/`** until that run exists.
+- The `fetch-depth: 0` commit-count detail in §10, closable with an
+  authenticated log view.
+- The intentional deferrals in §11, each owned by a named later milestone.
