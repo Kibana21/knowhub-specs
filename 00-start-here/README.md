@@ -64,7 +64,7 @@ Two rules govern how this workspace is populated:
 |---|---|
 | `00-start-here/` | Entry point: this README and the delivery roadmap. |
 | `01-architecture/` | Architecture documents. Empty — not yet created. |
-| `02-adrs/` | Architectural Decision Records. Empty — not yet created. |
+| `02-adrs/` | Architectural Decision Records: the live ADR register and all product-wide ADRs. |
 | `03-specs/00-foundation/` | Capability specifications, grouped by delivery stage. Empty — not yet created. |
 | `04-plans/current/` | Implementation plans for work in progress. Empty. |
 | `04-plans/completed/` | Implementation plans for delivered work. Empty. |
@@ -79,3 +79,4 @@ Two rules govern how this workspace is populated:
 | [`delivery-roadmap.md`](delivery-roadmap.md) | The authoritative build order and milestone sequence. Read this before starting any new specification. |
 | [`../05-reference/blueprint-index.md`](../05-reference/blueprint-index.md) | Topic-grouped navigation index for all 97 blueprint sections, with direct anchor links. |
 | [`../05-reference/glossary.md`](../05-reference/glossary.md) | The normative terminology contract. Use these terms with these meanings in every specification, ADR and commit. |
+| [`../02-adrs/README.md`](../02-adrs/README.md) | The live ADR register — every architectural decision, its status and where its canonical file lives. Governed by [ADR-026](../02-adrs/ADR-026-adr-ownership-and-location.md). |
