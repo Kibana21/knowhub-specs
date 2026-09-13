@@ -1,6 +1,6 @@
 # M00-T07 — Alembic scaffolding
 
-- **Status:** Not started
+- **Status:** Completed
 - **Depends on:** T02a, T03
 - **Blocks:** T08
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §3.7, T7
@@ -64,9 +64,9 @@ Editing an applied revision — the chain is extended, never rewritten.
 
 ## Completion checklist
 
-- [ ] `env.py` reads the URL from `knowhub.config`; no second configuration path
-- [ ] `target_metadata` is `None`
-- [ ] Zero revision files; `.gitkeep` present
-- [ ] Fresh, repeat and downgrade-upgrade runs all succeed
-- [ ] Failure against an unreachable database leaks no credential
-- [ ] No model, no persistence package, no extension created
+- [x] `env.py` reads the URL from `knowhub.config`; no second configuration path
+- [x] `target_metadata` is `None`
+- [x] Zero revision files; `.gitkeep` present
+- [x] Fresh, repeat and downgrade-upgrade runs all succeed
+- [x] Failure against an unreachable database leaks no credential
+- [x] No model, no persistence package, no extension created

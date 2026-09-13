@@ -1,6 +1,6 @@
 # M00-T02b — Configured-endpoint dependency verification
 
-- **Status:** Not started
+- **Status:** Completed
 - **Depends on:** T02a, T03
 - **Blocks:** T08
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §3.3, §3.8, T2b
@@ -84,13 +84,13 @@ personal credential.
 
 ## Completion checklist
 
-- [ ] Every configured endpoint comes from `knowhub.config` — no second parser
-- [ ] Lives in `scripts/`, never under `src/knowhub/`
-- [ ] No Redis or Azure dependency added
-- [ ] Redis exchange is PING/PONG only; `-NOAUTH` reported clearly
-- [ ] PostgreSQL minimum and `vector` availability asserted, extension not created
-- [ ] `.env.example` documents both modes with placeholder values only
-- [ ] `.env.example` documents every developer-supplied setting (SPEC-002 R18)
-- [ ] M00-AC-012's `.env.example` clause demonstrated
-- [ ] No personal or machine-specific credential committed
-- [ ] No failure message leaks a secret
+- [x] Every configured endpoint comes from `knowhub.config` — no second parser
+- [x] Lives in `scripts/`, never under `src/knowhub/`
+- [x] No Redis or Azure dependency added
+- [x] Redis exchange is PING/PONG only; `-NOAUTH` reported clearly
+- [x] PostgreSQL minimum and `vector` availability asserted, extension not created
+- [x] `.env.example` documents both modes with placeholder values only
+- [x] `.env.example` documents every developer-supplied setting (SPEC-002 R18)
+- [x] M00-AC-012's `.env.example` clause demonstrated
+- [x] No personal or machine-specific credential committed
+- [x] No failure message leaks a secret

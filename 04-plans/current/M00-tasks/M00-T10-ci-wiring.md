@@ -1,6 +1,6 @@
 # M00-T10 — CI wiring
 
-- **Status:** Not started
+- **Status:** Completed
 - **Depends on:** T01, T02a, T02b, T03, T04, T05, T06, T07, T08, T09
 - **Blocks:** T11
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §3.7, T10
@@ -72,6 +72,35 @@ Each gate proven able to fail, then restored:
 
 None.
 
+## Watch-item carried forward from T02a
+
+`docker-compose.dev.yml` commits a **local-development sentinel** as the
+PostgreSQL password. It is not a real credential — SPEC-004 R8 permits
+non-production values as Compose-local configuration — but the secret scanner
+will very likely flag it.
+
+When it does:
+
+- **do not** broadly allowlist `docker-compose.dev.yml`;
+- **do not** broadly allowlist password-like patterns;
+- use the **narrowest possible** allowlist, scoped to that exact known value
+  in that exact file context;
+- then verify that a *different* synthetic credential placed elsewhere in the
+  repository still fails the scan, so the allowlist has not blunted the gate.
+
+This narrows one known non-credential. It is not a precedent for allowlisting
+anything else, and never for a real credential.
+
+> **Outcome (T10).** No allowlist was needed. gitleaks v8.30.1 does **not**
+> flag `knowhub_local_dev_only` — a scan of the working tree and of git
+> history both report "no leaks found". The gate therefore runs with **zero
+> allowlist entries**, which is the strongest possible configuration. The
+> guidance above still stands if a future ruleset does flag it.
+>
+> Effectiveness was proved separately: a synthetic GitHub-PAT-shaped
+> credential placed in an ephemeral scratch copy fails the scan (exit 1), and
+> its removal restores a clean run. Nothing was committed to the repository.
+
 ## Out of scope
 
 OpenAPI artifact publication and the compatibility-diff gate — no business
@@ -81,11 +110,11 @@ promotion or environment pipelines. Any dependency on a developer workstation.
 
 ## Completion checklist
 
-- [ ] All nine R13 gates present and blocking
-- [ ] Setup runs `uv lock --check` before `uv sync --frozen`
-- [ ] Runs with only `knowhub-backend` cloned
-- [ ] No reference to `knowhub-frontend` or any workstation service
-- [ ] Dependency services come from the T02a Compose definition on the runner
-- [ ] Every action pinned by commit SHA; least-privilege permissions
-- [ ] Each gate demonstrated able to fail and restored to green
-- [ ] No synthetic credential or scratch artefact left in the repository
+- [x] All nine R13 gates present and blocking
+- [x] Setup runs `uv lock --check` before `uv sync --frozen`
+- [x] Runs with only `knowhub-backend` cloned
+- [x] No reference to `knowhub-frontend` or any workstation service
+- [x] Dependency services come from the T02a Compose definition on the runner
+- [x] Every action pinned by commit SHA; least-privilege permissions
+- [x] Each gate demonstrated able to fail and restored to green
+- [x] No synthetic credential or scratch artefact left in the repository

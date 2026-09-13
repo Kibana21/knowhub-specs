@@ -1,6 +1,6 @@
 # M00-T11 — M00 verification pass
 
-- **Status:** Not started
+- **Status:** Completed — verdict **M00 CONDITIONALLY ACCEPTED**; see [the verification report](../M00-VERIFICATION-REPORT.md)
 - **Depends on:** T10
 - **Blocks:** Milestone exit
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §6, T11
@@ -61,9 +61,9 @@ to this one. Beginning M1 work of any kind.
 
 ## Completion checklist
 
-- [ ] All 26 criteria have recorded evidence
-- [ ] Matrix executed in the managed Compose environment
-- [ ] Mode A equivalence pass completed for M00-AC-018
-- [ ] Tree clean after ephemeral verifications
-- [ ] §81.1 conditions confirmed, with vacuous clauses stated explicitly
-- [ ] Any unmet criterion recorded with its reason, not waived
+- [x] All 26 criteria have recorded evidence (23 PASS, 3 EXTERNAL-EVIDENCE-PENDING)
+- [x] Matrix executed in the managed Compose environment
+- [x] Mode A equivalence pass completed for M00-AC-018
+- [x] Tree clean after ephemeral verifications
+- [x] §81.1 conditions confirmed, with vacuous clauses stated explicitly
+- [x] Any unmet criterion recorded with its reason, not waived

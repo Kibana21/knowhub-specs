@@ -1,6 +1,6 @@
 # M00-T08 — Test harness and failure-path tests
 
-- **Status:** Not started
+- **Status:** Completed
 - **Depends on:** T02b, T03, T04, T05, T07
 - **Blocks:** T10
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §3.7, T8
@@ -61,6 +61,37 @@ violation (T06), migration against an unreachable database (T07).
 Exporter set to `none` for unit tests; telemetry asserted present for the API
 tests.
 
+## Watch-item carried forward from T04
+
+T04 renders an exception as its type and message and omits the traceback, so
+argument values cannot leak through a stack frame. What it does **not** yet
+prove is that a secret embedded in the exception *message itself* stays out of
+telemetry.
+
+Add a canary failure-path test here: raise an exception whose message contains
+a synthetic secret, then assert that no log record, span attribute, span
+status or error field exposes that value.
+
+T04 is not to be redesigned in anticipation of this. Only a defect proven by
+this test justifies changing it.
+
+## Watch-item carried forward from T05
+
+Starlette routes unhandled exceptions to its server-error middleware, which
+sits **outside** every user middleware. The correlation context has been reset
+by the time that boundary is reached, so T05 publishes the identifier on the
+ASGI scope and the error handler reads it from there.
+
+That crossing is load-bearing and easy to break silently. Add a regression
+test on the unhandled-error path proving:
+
+- the correlation identifier survives the `ServerErrorMiddleware` boundary;
+- the 500 response still carries `X-Correlation-ID`;
+- the response stays coarse — no traceback, no exception type or message, no
+  internal host or configuration detail.
+
+T05 is not to be changed further unless this test exposes a defect.
+
 ## Out of scope
 
 Contract, golden, parity, security and load test layers and their
@@ -71,10 +102,10 @@ for.
 
 ## Completion checklist
 
-- [ ] Only `unit/` and `integration/` exist under `tests/`
-- [ ] `test_migrations.py` is the only integration test
-- [ ] Integration layer runs against the configured PostgreSQL, not a mock
-- [ ] Integration layer skips clearly when the endpoint is unreachable
-- [ ] No Redis or Blob client, fake adapter or placeholder integration anywhere
-- [ ] All four R25 failure-path families exercised
-- [ ] Tests deterministic and order-independent
+- [x] Only `unit/` and `integration/` exist under `tests/`
+- [x] `test_migrations.py` is the only integration test
+- [x] Integration layer runs against the configured PostgreSQL, not a mock
+- [x] Integration layer skips clearly when the endpoint is unreachable
+- [x] No Redis or Blob client, fake adapter or placeholder integration anywhere
+- [x] All four R25 failure-path families exercised
+- [x] Tests deterministic and order-independent

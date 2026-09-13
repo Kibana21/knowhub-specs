@@ -1,6 +1,6 @@
 # M00-T09 — Container image and process mode
 
-- **Status:** Not started
+- **Status:** Completed
 - **Depends on:** T05
 - **Blocks:** T10
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §3.1, §3.7, T9
@@ -65,10 +65,10 @@ SBOM generation. Multi-architecture build matrices.
 
 ## Completion checklist
 
-- [ ] One image, two-stage, both bases pinned by tag and digest
-- [ ] Installs from the committed lockfile
-- [ ] Entrypoint accepts a process-mode selection
-- [ ] `api` is the only implemented mode; unknown modes exit non-zero
-- [ ] No placeholder worker or scheduler anywhere in the repository
-- [ ] Runs as non-root
-- [ ] Serves both probes and emits telemetry
+- [x] One image, two-stage, both bases pinned by tag and digest
+- [x] Installs from the committed lockfile
+- [x] Entrypoint accepts a process-mode selection
+- [x] `api` is the only implemented mode; unknown modes exit non-zero
+- [x] No placeholder worker or scheduler anywhere in the repository
+- [x] Runs as non-root
+- [x] Serves both probes and emits telemetry

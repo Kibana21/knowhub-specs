@@ -1,6 +1,6 @@
 # M00-T06 — Boundary enforcement
 
-- **Status:** Not started
+- **Status:** Completed
 - **Depends on:** T03, T04, T05
 - **Blocks:** T10
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §3.4, T6
@@ -63,9 +63,9 @@ themselves, which would be a specification or ADR question.
 
 ## Completion checklist
 
-- [ ] Layered contract and three forbidden contracts present
-- [ ] Every contract references only existing modules
-- [ ] Gate runs clean on the current tree
-- [ ] A scratch violation demonstrably fails the gate; removal restores green
-- [ ] No violation or scratch artefact committed
-- [ ] No contract loosened to accommodate existing code
+- [x] Layered contract and three forbidden contracts present
+- [x] Every contract references only existing modules
+- [x] Gate runs clean on the current tree
+- [x] A scratch violation demonstrably fails the gate; removal restores green
+- [x] No violation or scratch artefact committed
+- [x] No contract loosened to accommodate existing code

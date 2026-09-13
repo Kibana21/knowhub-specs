@@ -1,6 +1,41 @@
 # M00-T04 — Observability package
 
-- **Status:** Not started
+- **Status:** Completed — reopened for a telemetry-leakage defect, now corrected and regression-tested
+
+> **Implementation defect (factual note).** The JSON formatter emitted
+> ``str(exception)`` as ``error.message``. An exception message is
+> caller-influenced and routinely carries the values of the failing call —
+> database drivers put connection details into ``OperationalError`` — so a
+> secret in a message reached log output. This violated **M00-SPEC-003 R12**,
+> which already forbids a credential or connection string in a log record.
+> The requirement was correct; the implementation was not. **SPEC-003 is not
+> amended.**
+>
+> **Correction.** Exception text is **deny-by-default**: the formatter emits
+> the exception *type* only, never the message, ``args``, attributes or
+> traceback. Anything further must be passed explicitly as a structured field
+> by a caller who has taken responsibility for its safety. Pattern redaction
+> is deliberately **not** used as the primary control — a scrubber must
+> anticipate every secret shape, and the ones it misses are the ones that
+> matter.
+>
+> **Regression expectation.** T08 owns the committed proof: a synthetic
+> canary, and a second connection-string-shaped canary, must be absent from
+> log output and every structured log field, while ``error.type``,
+> ``correlation_id``, ``trace_id`` and ``span_id`` remain available.
+>
+> **Second correction — exported spans.** The framework also records the
+> exception onto the span, and the installed instrumentation exposes no
+> supported way to disable it (verified against the latest published
+> versions). ``observability/span_safety.py`` adds a field-level safety
+> boundary at the export seam: an allow-list strips ``exception.message``,
+> ``exception.stacktrace`` and any other attribute from an ``exception``
+> event, and replaces the status *description*, which
+> ``trace.use_span`` builds as ``f"{type(exc).__name__}: {exc}"``. Span
+> status code, ``exception.type``, span name, attributes and identifiers are
+> preserved. Public SDK API only — no monkey-patching, no fork, no pattern
+> redaction. Applied to every configured destination, so console and OTLP
+> behave identically. **Resolved.**
 - **Depends on:** T01, T03
 - **Blocks:** T05, T06
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §3.6, T4
@@ -88,11 +123,11 @@ FastAPI import in this package.
 
 ## Completion checklist
 
-- [ ] Initialised at bootstrap, before serving; failure is visible
-- [ ] Vendor-neutral; no Azure telemetry SDK among dependencies
-- [ ] Exporter selected by configuration only
-- [ ] Correlation validated before use; invalid input never propagated
-- [ ] Identifier on every span and every log record
-- [ ] Standard-library logging only; configuration isolated to `logging.py`
-- [ ] No FastAPI import anywhere in this package
-- [ ] Naming convention documented; no unbounded label or span name
+- [x] Initialised at bootstrap, before serving; failure is visible
+- [x] Vendor-neutral; no Azure telemetry SDK among dependencies
+- [x] Exporter selected by configuration only
+- [x] Correlation validated before use; invalid input never propagated
+- [x] Identifier on every span and every log record
+- [x] Standard-library logging only; configuration isolated to `logging.py`
+- [x] No FastAPI import anywhere in this package
+- [x] Naming convention documented; no unbounded label or span name

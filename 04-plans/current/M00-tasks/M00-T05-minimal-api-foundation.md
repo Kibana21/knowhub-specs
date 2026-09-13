@@ -1,6 +1,27 @@
 # M00-T05 — Minimal API foundation
 
-- **Status:** Not started
+- **Status:** Completed — reopened for two telemetry defects, now corrected and regression-tested
+
+> **Implementation defect (factual note).** Two issues, both against the
+> existing **M00-SPEC-003 R12**; the requirement is correct and **SPEC-003 is
+> not amended**.
+>
+> 1. **OpenTelemetry exception events.** The ASGI instrumentation records the
+>    exception automatically, and the event carries ``exception.message`` and
+>    ``exception.stacktrace``. A secret in an exception message therefore
+>    reaches exported span data. **Resolved in T04** by the export-boundary mechanism in
+>    ``observability/span_safety.py``. The installed instrumentation offers no
+>    supported switch — verified against the latest published versions — so the
+>    correction belongs in the observability layer, not here. This task's
+>    FastAPI instrumentation wiring is unchanged.
+> 2. **Error-path correlation.** The record describing an unhandled error
+>    carried ``correlation_id: null``, because the context is reset before
+>    Starlette's server-error boundary. The response header carried the
+>    identifier but the log did not, so the two could not be joined.
+>    **Corrected:** the handler re-binds the identifier read from the ASGI
+>    scope for the duration of the log call.
+>
+> **Regression expectation.** T08 owns the committed proof for both.
 - **Depends on:** T03, T04
 - **Blocks:** T06, T08, T09
 - **Plan:** [M00-PLAN-backend-foundation](../M00-PLAN-backend-foundation.md) §3.6, T5
@@ -88,11 +109,11 @@ session handling. Any database, Redis or blob access from a handler.
 
 ## Completion checklist
 
-- [ ] Wiring order is settings → observability → app → routes
-- [ ] Exactly two endpoints; no other route registered
-- [ ] Readiness reflects only settings load and observability initialisation
-- [ ] Readiness references no later-milestone dependency
-- [ ] Neither endpoint discloses configuration or secrets
-- [ ] Correlation middleware lives here, validation stays in observability
-- [ ] Every request emits a span carrying the correlation identifier
-- [ ] `src/knowhub/` holds exactly the three M00 packages, nothing more
+- [x] Wiring order is settings → observability → app → routes
+- [x] Exactly two endpoints; no other route registered
+- [x] Readiness reflects only settings load and observability initialisation
+- [x] Readiness references no later-milestone dependency
+- [x] Neither endpoint discloses configuration or secrets
+- [x] Correlation middleware lives here, validation stays in observability
+- [x] Every request emits a span carrying the correlation identifier
+- [x] `src/knowhub/` holds exactly the three M00 packages, nothing more
