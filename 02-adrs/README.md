@@ -63,6 +63,7 @@ works. Read ADR-026 before adding, moving or superseding an ADR.
 | ADR-024 | Premium bright evidence-first UI design language | Accepted | frontend — `knowhub-frontend` | [`docs/adr/ADR-024-premium-bright-evidence-first-ui.md`](https://github.com/Kibana21/knowhub-frontend/blob/main/docs/adr/ADR-024-premium-bright-evidence-first-ui.md) | — | — |
 | ADR-025 | Canonical user model is independent of auth provider | Accepted | product — `knowhub-specs` | [`ADR-025-canonical-user-model-independent-of-provider.md`](ADR-025-canonical-user-model-independent-of-provider.md) | — | — |
 | ADR-026 | ADR ownership, location, numbering and register | Accepted | product — `knowhub-specs` | [`ADR-026-adr-ownership-and-location.md`](ADR-026-adr-ownership-and-location.md) | — | — |
+| ADR-027 | Frontend BFF session state ownership | Accepted | product — `knowhub-specs` | [`ADR-027-frontend-bff-session-state-ownership.md`](ADR-027-frontend-bff-session-state-ownership.md) | — | — |
 
-**26 ADRs** — 14 product-wide, 11 backend, 1 frontend.
-Next number to allocate: **ADR-027**.
+**27 ADRs** — 15 product-wide, 11 backend, 1 frontend.
+Next number to allocate: **ADR-028**.
