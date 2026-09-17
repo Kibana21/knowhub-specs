@@ -35,7 +35,7 @@ owned by two specifications, and no §81 0B item is unowned.
 | [0B-SPEC-002 — Application shell, design system and accessibility](0B-SPEC-002-application-shell-design-system-and-accessibility.md) | Design tokens and theme policy, the reusable primitive layer, the application shell as a composition mechanism, UI state classes, safe error presentation, accessibility and responsive behaviour. | Approved |
 | [0B-SPEC-003 — OpenAPI contract and API client foundation](0B-SPEC-003-openapi-contract-and-api-client-foundation.md) | Contract artifact governance, the reproducible generation pipeline and its freshness property, the single API access boundary, correlation propagation, safe API error normalization, the streaming boundary and the server-state foundation. | Approved |
 | [0B-SPEC-004 — Configuration, BFF session and authorization foundations](0B-SPEC-004-configuration-bff-session-and-authorization-foundations.md) | The typed frontend configuration boundary and its server-only versus browser-exposed split, the LOCAL/OIDC/HYBRID provider-selection shell, the browser and BFF session boundary, the OIDC protocol shell, the session state and lifecycle contract, the authorization and route-guard foundation, CSRF and redirect safety, auth and session safe diagnostics, and the test-only identity and session doubles. | Approved |
-| 0B-SPEC-005 — Testing, security, production build and CI | — | Not started |
+| [0B-SPEC-005 — Testing, security, production build and CI](0B-SPEC-005-testing-security-production-build-and-ci.md) | Test architecture and deterministic, repository-independent execution, test-only isolation from production, the static quality gates, the component, accessibility, contract, browser, multi-instance and security-negative verification layers, the production browser-hardening baseline delegated by 0B-SPEC-004, dependency and supply-chain security, the production build and container release artifact, and the CI gate set. | Approved |
 
 Specifications are created incrementally, in the order above. A row carrying
 `—` has no approved content and no requirements; its title records ownership
@@ -62,7 +62,7 @@ reassigned.
 | 0B-AC-020 – 0B-AC-039 | 0B-AC-020 – 0B-AC-036 | 0B-SPEC-002 |
 | 0B-AC-040 – 0B-AC-059 | 0B-AC-040 – 0B-AC-058 | 0B-SPEC-003 |
 | 0B-AC-060 – 0B-AC-089 | 0B-AC-060 – 0B-AC-086 | 0B-SPEC-004 |
-| 0B-AC-090 – 0B-AC-119 | — | 0B-SPEC-005 |
+| 0B-AC-090 – 0B-AC-119 | 0B-AC-090 – 0B-AC-115 | 0B-SPEC-005 |
 
 ## Milestone exit
 
