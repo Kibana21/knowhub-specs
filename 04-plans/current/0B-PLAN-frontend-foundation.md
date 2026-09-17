@@ -197,13 +197,16 @@ requires no specification amendment and no ADR.
 
 **Reversible here:** package versions and version ranges; file and directory
 names below the level S1 R10 fixes; environment-variable names; scanner, linter
-and formatter products; test file layout; CI provider, workflow filename, job and
-step names; Docker stage structure and base image; header *values* the sources
-leave open; cookie names; the fixture filename; the correlation binding used for
-tests.
+and formatter products; **which file a package-manager setting lives in and what
+that setting is called** (§7.4); **which mechanism carries a policy, when the one
+first named turns out not to enforce it** (§7.5); test file layout; CI provider,
+workflow filename, job and step names; Docker stage structure and base image;
+header *values* the sources leave open; cookie names; the fixture filename; the
+correlation binding used for tests.
 
 **Source-fixed, and therefore not this plan's to change:** the directory
-*inventory* of S1 R10; ESLint as the lint tool (S1 R23); Vitest as the component
+*inventory* of S1 R10; ESLint as the lint tool (S1 R23 — §7.5's suppression check
+adds no rule about code and does not displace it); Vitest as the component
 layer (S5 R19); Playwright as the browser layer (S5 R28); Chromium as the
 blocking engine (S5 R29); TanStack Query as the server-state foundation
 (S3 R46); the `knowhub-frontend:<git-sha>` artifact identity form (S5 R67);
@@ -217,10 +220,17 @@ architectural requirement.** No task file may present one as such.
 
 Selected by one rule: **the newest stable version inside the range that the whole
 set mutually supports** — never the highest number available. Every peer range
-and engine constraint below was verified mechanically against the registry; the
-set resolves with **no unmet peer**.
+and engine constraint below was verified mechanically against the registry.
 
-### 7.1 Two compatibility-driven pins, recorded so a later upgrade is routine
+One exception to that verification was found at implementation and is corrected
+in §7.1: the lint chain's peer ranges were checked one package deep, against
+`eslint-config-next`'s own declaration, and not against the plugins it carries.
+Registry peer ranges are a necessary check, not a sufficient one — §7.1's third
+pin is the record of that. **The set recorded in §7.2 below, with ESLint at
+9.39.5, is the verified mutually compatible set**; the superseded `eslint@10.10.0`
+pin was never peer-compatible with the lint ecosystem this plan selects.
+
+### 7.1 Three compatibility-driven pins, recorded so a later upgrade is routine
 
 **TypeScript 5.9.3, not 7.0.2.** TypeScript 7.0.2 is the current `latest`, but
 `typescript-eslint@8.70.0` declares `typescript >=4.8.4 <6.1.0` and
@@ -235,6 +245,47 @@ architectural decision.
 repository whose purpose is a stable blocking gate set does not adopt a
 two-week-old major. **Upgrade trigger:** a 5.x line with a month of quiet.
 
+**ESLint 9.39.5, not 10.10.0 — established empirically during T02.** An earlier
+draft of this plan pinned `eslint@10.10.0`. Verified at implementation,
+`eslint-config-next@16.3.5` **cannot run under ESLint 10 at all**, from two
+independent causes:
+
+- `eslint-plugin-react@7.37.5`, which `eslint-config-next` carries and which is
+  the latest published version, declares
+  `peerDependencies.eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9.7`. Linting a
+  `.ts` or `.tsx` file aborts with
+  `TypeError: Error while loading rule 'react/display-name': contextOrFilename.getFilename is not a function`.
+- `eslint-config-next/parser` wraps `next/dist/compiled/babel/eslint-parser`, a
+  vendored parser whose scope manager predates ESLint 10's API. Linting a `.js`
+  or `.mjs` file aborts with
+  `TypeError: scopeManager.addGlobals is not a function`.
+
+`eslint-plugin-jsx-a11y@6.10.2` and `eslint-plugin-import@2.32.0`, also carried
+by `eslint-config-next`, likewise cap at `^9`. **9.39.5 is therefore the newest
+ESLint the lint set selected by §7.2 mutually supports**, which is this
+section's own selection rule applied correctly rather than a new constraint.
+`typescript-eslint@8.70.0` (`^8.57.0 || ^9.0.0 || ^10.0.0`),
+`eslint-plugin-react-hooks@7.1.1` (`^9.0.0 || ^10.0.0`) and
+`eslint-plugin-boundaries@7.2.0` (`>=6.0.0`) are unaffected and keep their pins.
+`pnpm install` reports `[WARN] deprecated eslint@9.39.5`; the warning records
+that 9.x is the maintenance line, and does not change which version the set
+supports. **Upgrade trigger:** re-evaluate ESLint 10 when the **complete** selected
+Next.js lint chain — `eslint-config-next`, the `eslint-plugin-react`,
+`eslint-plugin-jsx-a11y` and `eslint-plugin-import` it carries, and its parser —
+both *declares* and *demonstrates* ESLint 10 support. A dependency bump, not an
+architectural decision. **Do not upgrade individual plugins outside the §7
+selection rule merely to reach ESLint 10**: pulling one plugin ahead of the
+config that carries it reintroduces exactly the unverified peer assumption this
+pin exists to record.
+
+**`@eslint/js` is pinned explicitly.** ESLint 10 dropped `@eslint/js` from its
+own dependencies, and under pnpm's non-flat layout it is not resolvable from the
+repository root unless declared. T02 composes `@eslint/js` recommended, so the
+package is a direct devDependency pinned to **9.39.5**, holding ESLint core and
+its rule package on one maintenance line. This is a manifest correction, not a
+new requirement: no acceptance criterion, ADR or architectural decision turns on
+it.
+
 ### 7.2 Pinned set
 
 | Package | Version | Role |
@@ -246,7 +297,8 @@ two-week-old major. **Upgrade trigger:** a 5.x line with a month of quiet.
 | `typescript` | 5.9.3 | strict compiler — see §7.1 |
 | `@types/node` | 24.13.5 | Node 24 types |
 | `@types/react` / `@types/react-dom` | 19.3.0 | React types |
-| `eslint` | 10.10.0 | lint gate |
+| `eslint` | **9.39.5** | lint gate — newest version the lint set supports; see §7.1 |
+| `@eslint/js` | **9.39.5** | ESLint core recommended rules; no longer shipped by `eslint` — see §7.1 |
 | `typescript-eslint` | 8.70.0 | type-aware rules |
 | `eslint-config-next` | 16.3.5 | framework rules |
 | `eslint-plugin-react-hooks` | 7.1.1 | hook correctness |
@@ -303,6 +355,160 @@ verify              lint && format:check && typecheck && test && contract:verify
 
 `pnpm verify` is the single local sequence `README.md` documents for 0B-AC-013.
 
+`lint` is a two-part gate and not a bare `eslint .`:
+
+```
+lint  eslint . && node scripts/check-eslint-suppressions.mjs
+```
+
+§7.5 records why the second half exists and why it is not a second lint tool.
+
+### 7.4 Package-manager settings location, verified against pnpm 12.4.2
+
+This subsection records **verified behaviour of the pinned package manager**,
+established empirically during T01 implementation. It is a plan-level
+tool-configuration refinement under §6: it changes **where** a policy is
+expressed, not what is required. **No Approved requirement, acceptance criterion,
+architectural decision or version pin changes because of it**, and no ADR is
+implicated — a package-manager setting name fails the `knowhub-sdd` ADR test the
+same way a linter's configuration file name does.
+
+**Settings live in `pnpm-workspace.yaml`, not `.npmrc`.** An earlier draft of
+this plan and of T01 named `.npmrc` as the home for `frozen-lockfile=true` and
+`engine-strict=true`. Verified with pnpm 12.4.2, those kebab-case keys are **not
+read from `.npmrc`**, and with only those keys present a bare `pnpm install`
+**updated the lockfile** — precisely the silent drift S1 R3 and 0B-AC-001 forbid.
+pnpm 12's own `install --help` names the effective setting `frozenLockfile`.
+
+*Reproducing that check.* The observation is only visible when the setting is
+absent from `pnpm-workspace.yaml`: in a project carrying the two kebab-case keys
+in `.npmrc` and **no** `pnpm-workspace.yaml`, `pnpm config get frozen-lockfile`,
+`… engine-strict`, `… frozenLockfile` and `… engineStrict` all return
+`undefined`. Once `frozenLockfile: true` is set in `pnpm-workspace.yaml`, the
+kebab-case *query* resolves to it and returns `true` — the kebab spelling works
+as a query alias, never as a way to **set** the value from `.npmrc`. A reader
+running `pnpm config get frozen-lockfile` against the finished repository will
+therefore see `true`, and that reflects the workspace file, not `.npmrc`.
+
+The authoritative install policy is therefore:
+
+```yaml
+# pnpm-workspace.yaml
+frozenLockfile: true          # single resolution path, on the DEFAULT install path
+engineStrict: true            # dependency engine ranges enforced, not advisory
+allowBuilds:
+  unrs-resolver: true         # the one mechanically-discovered native build step
+minimumReleaseAgeExclude:     # see "Release age" below
+  - jsdom@30.1.0
+  - lucide-react@1.47.0
+```
+
+`.npmrc` is retained for registry-level and npm-compatible configuration. It may
+carry the two kebab-case keys as an explicitly-labelled compatibility
+restatement, but **it is never the authoritative enforcement location for
+either control**, and no task may cite it as such.
+
+**`allowBuilds`, not `onlyBuiltDependencies`.** pnpm 12 supersedes the older key
+name; the allowlist's substance is unchanged. Membership is derived mechanically
+— a package qualifies only after pnpm has reported its build as ignored and the
+build is confirmed to be a genuine native compilation step. At 0B that is exactly
+one package. `unrs-resolver` is a native Rust module resolver reached through the
+approved lint chain (`eslint-config-next` → `eslint-import-resolver-typescript`),
+whose install step selects the platform-native binding; the lint gate cannot
+resolve imports without it. Arbitrary dependency build execution stays disabled.
+
+**Release age.** pnpm 12 applies a default publication cooldown and enforces it
+on **frozen installs as well as on resolution**. Two §7.2 pins — `jsdom@30.1.0`
+and `lucide-react@1.47.0` — were published inside that window when the lockfile
+was bootstrapped, so without exact-version exclusions
+`pnpm install --frozen-lockfile` fails with
+`ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` and a clean checkout cannot install at
+all. The resolution keeps the approved pins and scopes the exclusion to those two
+exact versions. **The cooldown is not disabled, lowered or globally weakened**;
+every other package remains subject to it; exact-version pinning plus the
+lockfile integrity hashes remain the resolution authority. The entries become
+inert once those versions age past the window and should then be removed. **This
+introduces no supply-chain requirement and does not relocate supply-chain
+ownership: §23 and T30 continue to own it.**
+
+**What enforces the Node baseline.** Four mechanisms with distinct
+responsibilities; no document may claim one does another's job:
+
+| Mechanism | Responsibility |
+|---|---|
+| `.nvmrc` | defines the developer Node baseline (`24.21.0`) |
+| `package.json#engines.node` | **declares** the supported application range (`>=24.21.0 <25`) |
+| `engineStrict: true` | rejects incompatible **dependency** engine/runtime combinations |
+| T31 CI | explicitly selects Node `24.21.0` from `.nvmrc` — automated repository-level enforcement |
+
+`engineStrict: true` enforces the engine ranges **dependencies declare**. It does
+**not** by itself enforce the root project's own `engines.node`: an install with
+a deliberately impossible root range of `>=99.0.0` was observed to succeed. In
+this dependency set the declared baseline still holds in practice — installing
+under Node 25.2.1 fails with `ERR_PNPM_UNSUPPORTED_ENGINE` naming `jsdom@30.1.0`'s
+`^24.15.0` range, which independently confirms §7.2's jsdom reasoning — but the
+`<25` upper bound is not itself machine-checked at T01. Repository-level
+enforcement is **T31's**, which owns the CI half of 0B-AC-003; T01 advances that
+criterion rather than satisfying it.
+
+**Bootstrap sequence**, verified:
+
+```text
+Initial repository only:   pnpm install --no-frozen-lockfile
+Once the lockfile exists:  pnpm install --frozen-lockfile
+Normal/default install:    frozenLockfile: true prevents silent drift
+```
+
+The stale-manifest negative test is run against **both** the explicit frozen path
+and the configured default path, because only the second proves `frozenLockfile:
+true` is actually in force.
+
+### 7.5 Blanket-suppression enforcement, verified against the pinned ESLint
+
+This subsection records **verified behaviour of the pinned lint tool**,
+established empirically during T02 implementation. Like §7.4 it is a plan-level
+tool-configuration refinement under §6: it changes **which mechanism** carries a
+policy, not what the policy is. **No Approved requirement, acceptance criterion,
+architectural decision or version pin changes because of it**, and no ADR is
+implicated.
+
+S1 R7 requires that a suppression be narrow, local and justified, and that
+blanket suppression of a file, a module or a rule class is not an acceptable way
+to pass the gate. An earlier draft of this plan and of T02 assigned the blanket
+half of that to ESLint's `no-restricted-syntax`. **That rule cannot carry it**,
+for two independent reasons, both verified against the pinned ESLint:
+
+- **`no-restricted-syntax` does not visit comment nodes.** Selectors for `Line`
+  and `Block` match nothing, in an ordinary file as well as a suppressed one, so
+  a directive comment is invisible to the rule in the first place.
+- **A rule-less directive suppresses the rule that would report it.** A file
+  opening with a bare `eslint-disable` block comment disables every rule from
+  that position onward, including any rule reporting at that position. ESLint's
+  own `reportUnusedDisableDirectives` does not close the gap either: it flags a
+  directive that suppressed *nothing*, so a blanket directive covering a real
+  violation is reported by neither half.
+
+The policy is therefore carried by two mechanisms that together hold what one
+rule could not:
+
+| Mechanism | Responsibility |
+|---|---|
+| `linterOptions.reportUnusedDisableDirectives: 'error'` in `eslint.config.mjs` | a suppression that no longer suppresses anything is itself an error |
+| `scripts/check-eslint-suppressions.mjs`, chained into `pnpm lint` | a suppression directive that names no rule is an error, whatever it suppresses |
+
+**The script is not a second lint tool, and S1 R23 is not weakened.** It carries
+exactly one rule, has no plugin surface, no configuration and no dependency; it
+reads source text precisely because the AST is the wrong layer for a directive
+comment. It rejects `eslint-disable`, `eslint-disable-next-line`,
+`eslint-disable-line` and `eslint-enable` when the directive names no rule —
+including the form that carries only a ` -- ` description — and accepts every one
+of those four forms when a rule list is present. ESLint remains the lint tool:
+every rule that decides whether code is acceptable lives in `eslint.config.mjs`.
+
+Running on Node with no dependency keeps the check identical for a contributor
+and in CI (S5 R18). **T31 inherits it through `pnpm lint`** and needs no separate
+step.
+
 ## 8. Planned final repository structure
 
 Only what is expected to exist after 0B. No empty directory mirrors a future
@@ -321,7 +527,8 @@ knowhub-frontend/
 │
 ├── contracts/README.md          governance note only — NO knowhub-openapi.json   S3 R1, R7
 │
-├── scripts/                     generate-api-client · verify-contract-freshness
+├── scripts/                     check-eslint-suppressions      §7.5
+│                                generate-api-client · verify-contract-freshness
 │                                inspect-build-artifact · verify-security-headers
 │                                write-contract-evidence
 │
@@ -1138,7 +1345,7 @@ translation rather than a redesign.
 
 | Job | Gates | Depends on |
 |---|---|---|
-| `quality` | frozen install; lockfile currency; ESLint; Prettier; `tsc --noEmit`; module boundaries; unsafe-DOM rules | — |
+| `quality` | frozen install; lockfile currency; ESLint; blanket-suppression check (§7.5, inside `pnpm lint`); Prettier; `tsc --noEmit`; module boundaries; unsafe-DOM rules | — |
 | `test` | Vitest node and jsdom projects — unit, component, contract, structural accessibility | `quality` |
 | `contract` | generation determinism; malformed-input failure; **no-network generation**; freshness and drift; contract evidence | `quality` |
 | `browser` | verification build; Playwright `chromium-desktop`, `chromium-tablet`, `security`; authoritative accessibility pass; multi-instance | `quality` |
@@ -1482,6 +1689,8 @@ deployment model or security authority; anything contradicting an Accepted ADR:
 | GitHub Actions | §0E.1 already permits it; S5 R76 fixes no provider. **No ADR.** |
 | `openid-client`, `jose` | S4 §6 makes the OIDC library a plan choice unless it relocates session authority, requires browser token custody or moves entitlement into the frontend. Neither does. **No ADR.** |
 | Versions, scanners, formatter, test paths, CI topology, Docker stages | ordinary plan-level choices under the `knowhub-sdd` test. **No ADR.** |
+| ESLint pinned to 9.39.5 rather than 10.10.0 (§7.1) | a compatible version selection inside an unchanged tool choice. ESLint remains the lint tool S1 R23 fixes; §6 lists package versions as reversible. Touches no repository boundary, no security authority, no session or contract ownership. **No ADR.** |
+| Blanket-suppression check moved out of `no-restricted-syntax` (§7.5) | the location and mechanism of a static policy check, corrected because the named rule cannot inspect comment directives. The policy is S1 R7's and is unchanged; ESLint stays the sole lint engine. **No ADR.** |
 
 **Two watch-points that would change this answer** and must halt implementation:
 

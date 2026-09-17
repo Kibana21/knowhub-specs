@@ -117,7 +117,7 @@ and `pnpm verify` is green.
 
 | After phase | Gate that must hold |
 |---|---|
-| 1 | `pnpm install --frozen-lockfile`, lint, format, typecheck and build all green on a clean checkout |
+| 1 | `pnpm install --frozen-lockfile`, lint, format, typecheck and build all green on a clean checkout, on the plan §7.2 Node baseline. `pnpm lint` is two checks — ESLint and the blanket-suppression check of plan §7.5. The lint, format and typecheck gates, and the suppression check, each demonstrated failing on a deliberate violation and green once removed |
 | 2 | boundary, server-only and unsafe-DOM gates each demonstrated failing on a deliberate violation and green once removed |
 | 3 | component and structural-accessibility suites green; token-change test passes |
 | 4 | all four drift cases detected and restored; generation byte-identical and offline |

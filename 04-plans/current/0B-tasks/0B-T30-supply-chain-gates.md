@@ -77,6 +77,18 @@ step's comment so a future reader does not "fix" it.
 remediated. **Never widen the severity threshold to get a pass**; bump the base
 image instead.
 
+**Two release-age exclusions are inherited from T01 and are this task's to
+review.** pnpm 12 applies a default publication cooldown and enforces it on
+frozen installs. `jsdom@30.1.0` and `lucide-react@1.47.0` were published inside
+that window when the lockfile was bootstrapped, so `pnpm-workspace.yaml` carries
+exact-version `minimumReleaseAgeExclude` entries for them — otherwise the
+approved §7.2 pin set cannot install at all (plan §7.4). T01 deliberately
+declared **no** cooldown value, because supply-chain policy is this task's.
+Confirm the entries are still needed; both become inert once those versions age
+past the window, and an inert exclusion should be removed. **Removing them is
+the only acceptable direction** — do not broaden either entry, and do not
+disable or lower the cooldown globally to avoid maintaining them.
+
 ## Validation
 
 ```
